@@ -2,6 +2,7 @@
 name = "tap-aws-cost-explorer"
 version = "0.0.1"
 description = "`tap-aws-cost-explorer` is a Singer tap for AWSCostExplorer, built with the Meltano SDK for Singer Taps."
+authors = []
 keywords = [
     "ELT",
     "AWSCostExplorer",
