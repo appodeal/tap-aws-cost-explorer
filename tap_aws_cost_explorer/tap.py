@@ -1,5 +1,6 @@
 """AWSCostExplorer tap class."""
 
+import os
 from typing import List
 
 from singer_sdk import Tap, Stream
@@ -8,13 +9,20 @@ from singer_sdk import typing as th  # JSON schema typing helpers
 from tap_aws_cost_explorer.streams import (
     CostAndUsageWithResourcesStream,
 )
+
 STREAM_TYPES = [
     CostAndUsageWithResourcesStream,
 ]
 
+CONFIG_VARS = {
+    "access_key": "AWS_ACCESS_KEY_ID",
+    "secret_key": "AWS_SECRET_ACCESS_KEY",
+}
+
 
 class TapAWSCostExplorer(Tap):
     """AWSCostExplorer tap class."""
+
     name = "tap-aws-cost-explorer"
 
     config_jsonschema = th.PropertiesList(
@@ -22,36 +30,36 @@ class TapAWSCostExplorer(Tap):
             "access_key",
             th.StringType,
             required=True,
-            description="Your AWS Account Access Key."
+            description="Your AWS Account Access Key.",
         ),
         th.Property(
             "secret_key",
             th.StringType,
             required=True,
-            description="Your AWS Account Secret Key."
+            description="Your AWS Account Secret Key.",
         ),
         th.Property(
             "session_token",
             th.StringType,
-            description="Your AWS Account Session Token if required for authentication."
+            description="Your AWS Account Session Token if required for authentication.",
         ),
         th.Property(
             "start_date",
             th.StringType,
             required=True,
-            description="The start date for retrieving Amazon Web Services cost."
+            description="The start date for retrieving Amazon Web Services cost.",
         ),
         th.Property(
             "end_date",
             th.DateTimeType,
-            description="The end date for retrieving Amazon Web Services cost."
+            description="The end date for retrieving Amazon Web Services cost.",
         ),
         th.Property(
             "granularity",
             th.StringType,
             required=True,
             description="Sets the Amazon Web Services cost granularity to \
-                        MONTHLY or DAILY , or HOURLY."
+                        MONTHLY or DAILY , or HOURLY.",
         ),
         th.Property(
             "metrics",
@@ -61,10 +69,15 @@ class TapAWSCostExplorer(Tap):
                         values are AmortizedCost, BlendedCost, \
                         NetAmortizedCost, NetUnblendedCost, \
                         NormalizedUsageAmount, UnblendedCost, and \
-                        UsageQuantity."
+                        UsageQuantity.",
         ),
     ).to_dict()
 
     def discover_streams(self) -> List[Stream]:
         """Return a list of discovered streams."""
+
+        for k, v in CONFIG_VARS.items():
+            if os.environ.get(v):
+                self._config[k] = os.environ.get(v)
+
         return [stream_class(tap=self) for stream_class in STREAM_TYPES]
